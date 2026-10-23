@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Verbatim</title>
+<style>
+  :root {
+    --bg: #f7f6f3; --panel: #ffffff; --ink: #1d1d1b; --muted: #6b6a66; --line: #e3e1db;
+    --accent: #1f5eff; --accent-ink: #ffffff; --hi: #ffe7a3; --warn: #c2410c; --ok: #15803d;
+    --s1: #1f5eff; --s2: #b4338a; --s3: #0f8a6a; --s4: #c2410c; --s5: #6d4bd6; --s6: #8a6d0f;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #151514; --panel: #1e1e1c; --ink: #ecebe6; --muted: #9a988f; --line: #33322e;
+      --accent: #6b93ff; --accent-ink: #0b0b0a; --hi: #5a4a12; --warn: #fb923c; --ok: #4ade80;
+      --s1: #6b93ff; --s2: #f08ccc; --s3: #4cd3ae; --s4: #fb923c; --s5: #a493f5; --s6: #e0c25a; }
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+    font: 15px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  header { display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--line); background: var(--panel); }
+  header h1 { font-size: 17px; margin: 0; letter-spacing: .2px; }
+  header span { color: var(--muted); font-size: 13px; }
+  main { max-width: 1180px; margin: 0 auto; padding: 20px 16px 60px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 18px; }
+  .drop { border: 2px dashed var(--line); border-radius: 12px; padding: 44px 16px; text-align: center; cursor: pointer; transition: .15s; }
+  .drop.over, .drop:hover { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 6%, transparent); }
+  .drop strong { display: block; font-size: 17px; margin-bottom: 4px; }
+  .drop small { color: var(--muted); }
+  .opts { display: flex; flex-wrap: wrap; gap: 14px 22px; margin-top: 16px; align-items: end; }
+  label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); }
+  label.row { flex-direction: row; align-items: center; gap: 8px; color: var(--ink); }
+  input[type=number], select, textarea, input[type=search] { font: inherit; color: var(--ink); background: var(--bg);
+    border: 1px solid var(--line); border-radius: 8px; padding: 7px 9px; }
+  input[type=number] { width: 110px; }
+  textarea { width: 100%; min-height: 64px; resize: vertical; }
+  details { margin-top: 14px; } summary { cursor: pointer; color: var(--muted); font-size: 13px; }
+  button { font: inherit; border: 1px solid var(--line); background: var(--panel); color: var(--ink);
+    padding: 7px 13px; border-radius: 8px; cursor: pointer; }
+  button:hover { border-color: var(--accent); }
+  button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .hidden { display: none !important; }
+  .bar { height: 8px; background: var(--line); border-radius: 99px; overflow: hidden; margin: 12px 0 8px; }
+  .bar > div { height: 100%; width: 0; background: var(--accent); transition: width .3s; }
+  .err { color: var(--warn); white-space: pre-wrap; }
+  .layout { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 18px; align-items: start; }
+  @media (max-width: 860px) { .layout { grid-template-columns: 1fr; } .player { position: static !important; } }
+  .player { position: sticky; top: 14px; }
+  video { width: 100%; max-height: 62vh; background: #000; border-radius: 10px; display: block; }
+  .meta { color: var(--muted); font-size: 13px; margin: 10px 0; }
+  .toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 0; }
+  .tools { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 12px; }
+  .tools input[type=search] { flex: 1; min-width: 140px; }
+  .para { display: grid; grid-template-columns: 112px 1fr; gap: 8px 14px; padding: 12px 0; border-top: 1px solid var(--line); }
+  .para:first-child { border-top: 0; }
+  .who { font-weight: 600; font-size: 13px; line-height: 1.7; }
+  .who small { display: block; color: var(--muted); font-weight: 400; cursor: pointer; }
+  .who small:hover { color: var(--accent); }
+  @media (max-width: 520px) { .para { grid-template-columns: 1fr; } }
+  .words { font-size: 16px; line-height: 1.75; }
+  .w { cursor: pointer; border-radius: 4px; padding: 1px 0; }
+  .w:hover { background: color-mix(in srgb, var(--accent) 14%, transparent); }
+  .w.now { background: var(--accent); color: var(--accent-ink); }
+  .w.hit { background: var(--hi); }
+  .show-conf .w.low { text-decoration: underline dotted var(--warn); text-underline-offset: 4px; }
+  .sp0 { color: var(--s1); } .sp1 { color: var(--s2); } .sp2 { color: var(--s3); }
+  .sp3 { color: var(--s4); } .sp4 { color: var(--s5); } .sp5 { color: var(--s6); }
+  .tip { color: var(--muted); font-size: 12px; margin-top: 8px; }
+</style>
+</head>
+<body>
+<header><h1>Verbatim</h1><span>Video in, accurate transcript out. Runs entirely on this computer.</span></header>
+<main>
+
+  <section id="upload" class="card">
+    <div id="drop" class="drop" tabindex="0">
+      <strong>Drop a video or audio file here</strong>
+      <small>or click to choose one. MP4, MOV, MKV, WebM, MP3, WAV, M4A and anything else FFmpeg can read.</small>
+      <input id="file" type="file" accept="video/*,audio/*" class="hidden">
+    </div>
+    <div class="opts">
+      <label class="row"><input id="diarize" type="checkbox" checked> Label who is speaking</label>
+      <label>Number of speakers (leave empty to detect)
+        <input id="speakers" type="number" min="1" max="20" placeholder="auto"></label>
+      <label>Language
+        <select id="language"><option value="en">English (most accurate)</option><option value="auto">Other European language</option></select></label>
+    </div>
+    <details><summary>Custom vocabulary (names, brands, jargon)</summary>
+      <p class="tip">One per line. Write a term to fix its spelling, or <code>heard =&gt; correct</code> to force a replacement.</p>
+      <textarea id="glossary" placeholder="PostgreSQL&#10;Kubernetes&#10;en eight en =&gt; n8n"></textarea>
+    </details>
+  </section>
+
+  <section id="progress" class="card hidden">
+    <div id="pname" style="font-weight:600"></div>
+    <div class="bar"><div id="pbar"></div></div>
+    <div id="pmsg" class="meta"></div>
+    <div id="perr" class="err"></div>
+    <button id="again" class="hidden">Try another file</button>
+  </section>
+
+  <section id="result" class="hidden">
+    <div class="layout">
+      <div class="player card">
+        <video id="media" controls preload="metadata"></video>
+        <div id="meta" class="meta"></div>
+        <div class="toolbar" id="exports"></div>
+        <p class="tip">Click any word to jump to it. Dotted underlines mark words the model was unsure about, so those are the ones worth checking.</p>
+      </div>
+      <div class="card">
+        <div class="tools">
+          <input id="search" type="search" placeholder="Search the transcript">
+          <label class="row"><input id="conf" type="checkbox" checked> Flag uncertain words</label>
+          <button id="copy">Copy text</button>
+          <button id="newfile">New file</button>
+        </div>
+        <div id="doc"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const fmt = s => { s = Math.floor(s); const h = (s / 3600) | 0, m = ((s % 3600) / 60) | 0, x = s % 60;
+    return (h ? h + ':' + String(m).padStart(2, '0') : m) + ':' + String(x).padStart(2, '0'); };
+  const esc = t => t.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  let jobId = null, words = [], spans = [], current = -1, poll = null, raf = null;
+
+  const drop = $('drop'), file = $('file');
+  drop.onclick = () => file.click();
+  drop.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') file.click(); };
+  ['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+  ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+  drop.addEventListener('drop', e => { if (e.dataTransfer.files[0]) start(e.dataTransfer.files[0]); });
+  file.onchange = () => { if (file.files[0]) start(file.files[0]); };
+
+  function show(which) {
+    ['upload', 'progress', 'result'].forEach(id => $(id).classList.toggle('hidden', id !== which));
+  }
+
+  function start(f) {
+    const q = new URLSearchParams({ name: f.name, language: $('language').value,
+      diarize: $('diarize').checked ? '1' : '0', speakers: $('speakers').value, glossary: $('glossary').value });
+    show('progress');
+    $('pname').textContent = f.name; $('perr').textContent = ''; $('again').classList.add('hidden');
+    $('pbar').style.width = '0%'; $('pmsg').textContent = 'Uploading...';
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '/api/jobs?' + q.toString());
+    xhr.setRequestHeader('X-Verbatim', '1');
+    xhr.upload.onprogress = e => { if (e.lengthComputable) {
+      $('pbar').style.width = (e.loaded / e.total * 8) + '%'; $('pmsg').textContent = 'Uploading... ' + Math.round(e.loaded / e.total * 100) + '%'; } };
+    xhr.onload = () => {
+      if (xhr.status !== 202) return fail(JSON.parse(xhr.responseText || '{}').error || ('Upload failed (' + xhr.status + ')'));
+      jobId = JSON.parse(xhr.responseText).id; poll = setInterval(check, 700); check();
+    };
+    xhr.onerror = () => fail('Could not reach the local server.');
+    xhr.send(f);
+  }
+
+  function fail(msg) {
+    clearInterval(poll); $('perr').textContent = msg; $('pmsg').textContent = ''; $('again').classList.remove('hidden');
+  }
+  $('again').onclick = $('newfile').onclick = () => { stopSync(); $('media').removeAttribute('src'); show('upload'); file.value = ''; };
+
+  async function check() {
+    const r = await fetch('/api/jobs/' + jobId); const j = await r.json();
+    if (j.state === 'error') return fail(j.error || 'Something went wrong.');
+    $('pbar').style.width = (8 + j.progress * 92 * stageWeight(j.stage)) + '%';
+    $('pmsg').textContent = j.state === 'queued' ? 'Waiting for the previous file to finish...' : j.message + ' (' + Math.round(j.progress * 100) + '%)';
+    if (j.state === 'done') { clearInterval(poll); render(j); }
+  }
+  // Rough share of total time per stage, so the bar moves steadily instead of resetting.
+  function stageWeight(stage) { return { decode: .02, load: .05, vad: .1, asr: .6, diarize: .9, done: 1 }[stage] ?? .5; }
+
+  function render(j) {
+    const t = j.transcript; words = []; spans = []; current = -1;
+    const doc = $('doc'); doc.innerHTML = '';
+    const multi = t.speaker_count > 1;
+    t.segments.forEach(seg => {
+      const p = document.createElement('div'); p.className = 'para';
+      const who = document.createElement('div'); who.className = 'who';
+      const label = multi ? 'Speaker ' + (seg.speaker + 1) : '';
+      who.innerHTML = (multi ? '<span class="sp' + (seg.speaker % 6) + '">' + label + '</span>' : '') + '<small>' + fmt(seg.start) + '</small>';
+      who.querySelector('small').onclick = () => seek(seg.start);
+      const body = document.createElement('div'); body.className = 'words';
+      seg.words.forEach(w => {
+        const s = document.createElement('span'); s.className = 'w' + (w.confidence < 0.6 ? ' low' : '');
+        s.textContent = w.text; s.dataset.i = words.length; s.onclick = () => seek(w.start);
+        body.appendChild(s); body.appendChild(document.createTextNode(' '));
+        words.push(w); spans.push(s);
+      });
+      p.append(who, body); doc.appendChild(p);
+    });
+    if (!words.length) doc.innerHTML = '<p class="meta">No speech was found in this file.</p>';
+    $('meta').textContent = fmt(t.duration) + ' long, ' + words.length + ' words, ' + t.speaker_count + ' speaker' + (t.speaker_count === 1 ? '' : 's') +
+      ', processed in ' + Math.round(t.timings.total) + 's';
+    const ex = $('exports'); ex.innerHTML = '';
+    ['txt', 'srt', 'vtt', 'md', 'json'].forEach(f => { const a = document.createElement('a');
+      a.href = '/api/jobs/' + jobId + '/export?fmt=' + f; a.download = ''; const b = document.createElement('button');
+      b.textContent = '.' + f; a.appendChild(b); a.style.textDecoration = 'none'; ex.appendChild(a); });
+    const m = $('media'); m.src = '/api/jobs/' + jobId + '/media';
+    show('result'); startSync();
+  }
+
+  function seek(t) { const m = $('media'); m.currentTime = Math.max(0, t - 0.05); m.play(); }
+
+  function startSync() { stopSync(); const tick = () => { highlight($('media').currentTime); raf = requestAnimationFrame(tick); }; tick(); }
+  function stopSync() { if (raf) cancelAnimationFrame(raf); raf = null; }
+  function highlight(t) {
+    if (!words.length) return;
+    let lo = 0, hi = words.length - 1, idx = -1;
+    while (lo <= hi) { const mid = (lo + hi) >> 1; if (words[mid].start <= t) { idx = mid; lo = mid + 1; } else hi = mid - 1; }
+    if (idx >= 0 && t > words[idx].end + 0.6) idx = -1;  // in a long pause: nothing is being said
+    if (idx === current) return;
+    if (current >= 0) spans[current].classList.remove('now');
+    current = idx;
+    if (idx >= 0) { const s = spans[idx]; s.classList.add('now');
+      const r = s.getBoundingClientRect(); if (r.top < 90 || r.bottom > innerHeight - 40) s.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
+  }
+
+  $('conf').onchange = () => $('doc').classList.toggle('show-conf', $('conf').checked);
+  $('doc').classList.add('show-conf');
+  $('search').oninput = e => {
+    const q = e.target.value.trim().toLowerCase(); spans.forEach(s => s.classList.remove('hit'));
+    if (q.length < 2) return; let first = null;
+    const parts = q.split(/\s+/);
+    for (let i = 0; i + parts.length <= words.length; i++) {
+      if (parts.every((p, k) => words[i + k].text.toLowerCase().includes(p))) {
+        for (let k = 0; k < parts.length; k++) spans[i + k].classList.add('hit'); first = first || spans[i]; }
+    }
+    if (first) first.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  };
+  $('copy').onclick = async () => { const text = words.map(w => w.text).join(' ');
+    try { await navigator.clipboard.writeText(text); $('copy').textContent = 'Copied'; setTimeout(() => $('copy').textContent = 'Copy text', 1500); } catch { prompt('Copy:', text); } };
+})();
+</script>
+</body>
+</html>

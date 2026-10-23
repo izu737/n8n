@@ -123,6 +123,10 @@ def _make_handler(app: App, allowed_hosts: set[str]):
                 return self._json({"error": "bad host"}, HTTPStatus.FORBIDDEN)
             url = urlparse(self.path)
             parts = [p for p in url.path.split("/") if p]
+            if parts == ["favicon.ico"]:
+                self.send_response(HTTPStatus.NO_CONTENT)
+                self.end_headers()
+                return
             if not parts:
                 self.send_response(HTTPStatus.OK)
                 self.send_header("Content-Type", "text/html; charset=utf-8")
